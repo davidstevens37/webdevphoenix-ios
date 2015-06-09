@@ -4,6 +4,8 @@ var REQUEST_URL = 'http://webdevphoenix.com';
 var NAMESPACE = 'api';
 var VERSION = '1.0';
 
+REQUEST_URL = 'http://localhost:4000';
+
 var Api = {
 
 	get: function(endpoint, scope) {

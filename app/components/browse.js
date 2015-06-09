@@ -135,12 +135,19 @@ var Browse = React.createClass({
 	fetchData: function() {
 		Api.get('companies')
 			.then((companies) => {
+
+				for (var i in companies) {
+					var icon = companies[i].faicon ? convertCamel(companies[i].faicon.substr(3)) : 'code';
+					companies[i].faicon = (approvedIcons.indexOf(icon) > -1) ? 'fontawesome|'+icon : 'fontawesome|code';
+				}
+
 		 		var ds = new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
+		 		
 				this.setState({
 					isLoading: false,
 					companies: ds.cloneWithRows(companies)
 				});
-				console.log('doneLoading');
+
 			});
 	},
 
@@ -178,9 +185,6 @@ var Browse = React.createClass({
 					  	
 	renderRow: function(company) {
 
-		// move this to the .then() and massage the data when it arrives.
-		var icon = company.faicon ? convertCamel(company.faicon.substr(3)) : 'code';
-		company.faicon = (approvedIcons.indexOf(icon) > -1) ? 'fontawesome|'+icon : 'fontawesome|code';
 
 		return (		
 				<TouchableHighlight

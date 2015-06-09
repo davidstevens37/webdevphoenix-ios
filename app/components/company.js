@@ -2,6 +2,9 @@
 
 var React = require('react-native');
 var Api = require('../utilities/api');
+var Icon = require('FAKIconImage');
+var {vw, vh, vmin, vmax} = require('react-native-viewport-units');
+
 
 var {
 	View,
@@ -10,7 +13,9 @@ var {
 	Image,
 	TouchableHighlight,
 	ListView,
-	ActivityIndicatorIOS
+	ActivityIndicatorIOS,
+	MapView,
+	ScrollView
 } = React;
 
 var styles = StyleSheet.create({
@@ -26,7 +31,7 @@ var styles = StyleSheet.create({
 		flex: 1,
 		// display: 'flex',
 		// flexDirection: 'column',
-		backgroundColor: 'orange'
+		backgroundColor: '#fff'
 	},  
 	containerOne: {
 	
@@ -42,9 +47,9 @@ var styles = StyleSheet.create({
 
 	},
 	map: {
-		marginTop: 65,
-		backgroundColor: 'blue',
-		flex: 1
+		// backgroundColor: 'blue',
+		// flex: 1
+		height: 30*vh
 	},
 	buttonText: {
 		fontSize: 24,
@@ -75,43 +80,72 @@ var styles = StyleSheet.create({
    	 	backgroundColor: '#eee',
    	 	height: 80,
    	 	flex: 1
-  },
-  row: {
-  	height: 70,
-  	padding: 5,
-  	borderBottomWidth: 2,
-  	borderBottomColor: '#eee',
-  	flexDirection: 'row'
-  },
-  rowBody: {
-  	flex: 4
-  },
-  title: {
-  	fontSize: 20,
-  	color: '#2093bb'
-  },
-  text : {
-  	overflow: 'hidden',
-  	paddingBottom: 5,
-  	color: '#555555'
-  },
-  icon: {
-  	flex: 1,
-  	color: '#ddd'
-  }
+	},
+	row: {
+		marginTop: 65,
+		height: 70,
+		padding: 5,
+		borderBottomWidth: 2,
+		borderBottomColor: '#eee',
+		flexDirection: 'row'
+	},
+	rowItem: {
+		justifyContent: 'space-between',
+		height: 30,
+		padding: 3,
+		flexDirection: 'row'
+	},
+	rowBody: {
+		flex: 4
+	},
+	title: {
+		fontSize: 20,
+		color: '#2093bb'
+	},
+	text : {
+		overflow: 'hidden',
+		paddingBottom: 5,
+		color: '#555555'
+	},
+	icon: {
+		flex: 1,
+		color: '#ddd'
+	},
+	fontIcon: {
+		height: 50,
+		width: 50
+	},
+	scrollView: {
+		// backgroundColor: '#aaa'
+	},
+	textValues: {
+		padding: 20,
+		backgroundColor: '#D7F2BE',
+		borderRadius: 10,
+		margin: 15
+	},
+	question: {
+		color: '#687D54',
+		fontSize: 18,
+		fontWeight: 'bold'
+	},
+	answer: {
+		color: '#687D54',
+	}
+
 
 });
-
-var LANGUAGES = [];
 
 var HOST_URL = 'http://webdevphoenix.com';
 
 var Browse = React.createClass({
 
 	getInitialState: function(props) {
+
 		return {
 			company: this.props.company,
-			isLoading: true
+			isLoading: true,
+			marker: [{latitude: this.props.company.lat, longitude: this.props.company.lng, title: this.props.company.name, subtitle: this.props.company.size}]
 		}
 	},
 
@@ -119,13 +153,101 @@ var Browse = React.createClass({
 		
 	},
 
+	toUpper: function(item){
+		return item[0].toUpperCase() + item.slice(1);
+	},
 
+	overView: function(overview) {
+		overview = overview || 'Learn more...';
+		return overview.length > 55 ? overview.substr(0, 55) + '...' : overview;
+	},
+
+	formatContent: function(item){
+	
+		if (typeof item === 'object') {
+			item = item.join(', ');
+		} else if (item === 'true') {
+			item = 'yep';
+		} else if (item === 'false') {
+			item = 'nope';
+		}
+
+		return item;
+	},
 
 	render: function() {
+
+		var listArray = ['size', 'devteam', 'startup', 'clientwork', 'recruiter', 'city'];
+		var list = listArray.map((item, index) => {
+
+			if (!this.state.company[item].length) {
+				return <View key={index}></View>
+			} else {
+				return (
+					<View style={styles.rowItem} key={index} >
+						<Text style={styles.question}> {this.toUpper(item) }: </Text><Text style={styles.answer}> {this.formatContent(this.state.company[item])} </Text>
+					</View>
+				)
+			}
+
+		});	
+
+		var linksArray = ['url', 'website', 'careersite'];
+		var links = linksArray.map((item, index) => {
+			return (
+				<View style={styles.rowItem}>
+					<Text> {this.toUpper(item)} </Text>
+					<Text> {item === 'url' ? 'http://webdevphoenix.com' + this.state.company[item] : this.state.company[item]} </Text>
+				</View>
+			)
+		});
+
+
+		if (this.state.company.stack && this.state.company.stack.length) {
+			links.push(
+				<View style={styles.rowItem}>
+					<Text> Stack </Text>
+					<Text> {this.state.company.stack.join(', ')} </Text>
+				</View>
+			);
+		}
 	
 		return (
-	
-		      <Text style={styles.buttonText}>{this.state.company}</Text>
+			<View style={styles.container}>
+				<View style={styles.row}>
+					<Icon
+					  name={this.state.company.faicon}
+					  size={40}
+					  color='#ddd'
+					  style={styles.fontIcon} />
+			  		<View style={styles.rowBody}>
+				  		<Text style={styles.title}>{this.state.company.name}</Text>
+				  		<Text style={styles.text}>{this.overView(this.state.company.overview)}</Text>
+			  		</View>
+		  		</View>
+			
+				<ScrollView
+					onScroll={() => { console.log('onScroll!'); }}
+					scrollEventThrottle={200}
+					contentInset={{top: -65}}
+					style={styles.scrollView}>
+					<MapView 
+						style={styles.map}
+						annotations={this.state.marker}
+					></MapView>
+						<View style={styles.overviewContainer}>
+							<Text style={styles.overview}> Overview</Text>
+						</View>
+						<View style={styles.textValues}>
+							{list}
+						</View>
+						<View style={styles.linkList}>
+							{links}
+						</View>
+						
+				</ScrollView>
+			</View>
+		
 			
 	
 		);
