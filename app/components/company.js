@@ -119,10 +119,10 @@ var styles = StyleSheet.create({
 		// backgroundColor: '#aaa'
 	},
 	textValues: {
-		padding: 20,
+		padding: 10,
 		backgroundColor: '#D7F2BE',
 		borderRadius: 10,
-		margin: 15
+		margin: 10
 	},
 	question: {
 		color: '#687D54',
@@ -131,6 +131,23 @@ var styles = StyleSheet.create({
 	},
 	answer: {
 		color: '#687D54',
+	},
+	linkTitle: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		color: '#555555',
+		fontStyle: 'italic',
+		marginTop: 10
+	},
+	link: {
+		flex: 1,
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		color: '#2093bb',
+		marginBottom: 10
+	},
+	linkList: {
+		paddingLeft: 15
 	}
 
 
@@ -194,20 +211,22 @@ var Browse = React.createClass({
 
 		var linksArray = ['url', 'website', 'careersite'];
 		var links = linksArray.map((item, index) => {
-			return (
-				<View style={styles.rowItem}>
-					<Text> {this.toUpper(item)} </Text>
-					<Text> {item === 'url' ? 'http://webdevphoenix.com' + this.state.company[item] : this.state.company[item]} </Text>
-				</View>
-			)
+			if (this.state.company[item]) {
+				return (
+					<View>
+						<Text style={styles.linkTitle}> {this.toUpper(item)} </Text>
+						<Text style={styles.link}> {item === 'url' ? 'http://webdevphoenix.com' + this.state.company[item] : this.state.company[item]} </Text>
+					</View>
+				)
+			}
 		});
 
 
 		if (this.state.company.stack && this.state.company.stack.length) {
 			links.push(
-				<View style={styles.rowItem}>
-					<Text> Stack </Text>
-					<Text> {this.state.company.stack.join(', ')} </Text>
+				<View>
+					<Text style={styles.linkTitle}> Stack </Text>
+					<Text style={[styles.link, {color: '#555555'}]}> {this.state.company.stack.join(', ')} </Text>
 				</View>
 			);
 		}
