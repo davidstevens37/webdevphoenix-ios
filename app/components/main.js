@@ -2,7 +2,11 @@
 
 var React = require('react-native');
 var Api = require('../utilities/api');
-var Browse = require('./browse')
+var Browse = require('./browse');
+var Languages = require('./languages');
+var Locations = require('./locations');
+var approvedIcons = require('../assets/approved-icons.json');
+
 
 var {
 	View,
@@ -10,18 +14,11 @@ var {
 	StyleSheet,
 	Image,
 	TouchableHighlight,
-	NavigatorIOS
+	NavigatorIOS,
+	ActivityIndicatorIOS
 } = React;
 
 var styles = StyleSheet.create({
-	// mainContainer: {
-	// 	flex: 1,
-	// 	padding: 30,
-	// 	marginTop: 65,
-	// 	flexDirection: 'column',
-	// 	justifyContent: 'center',
-	// 	backgroundColor: '#48BBEC'
-	// },
 	container: {
 		marginTop: 65,
 		flex: 1
@@ -88,15 +85,31 @@ var styles = StyleSheet.create({
 		bottom: -8,
 		left: 50,
 		position: 'absolute'
-	}
+	},
+	centering: {
+    	alignItems: 'center',
+   	 	justifyContent: 'center',
+   	 	// backgroundColor: '#eee',
+   	 	height: 80,
+   	 	flex: 1
+  },
 
 });
+
+// move to utilities class;
+function convertCamel (input) { 
+	return input.replace(/(\-[a-z])/g, function($1){return $1.toUpperCase().replace('-','');});
+}
+function convertLowerPluralize (input) {
+	var s = input[input.length -1] === 's' ? '' : 's'
+	return input[0].toLowerCase() + input.slice(1) + s;
+}
 
 var Main = React.createClass({
 
 	getInitialState: function() {
 		return {
-			companies: null
+			isLoading: true
 		}
 	},
 
@@ -105,35 +118,79 @@ var Main = React.createClass({
 	},
 
 	fetchData: function() {
-		// Api.get('all', this);
+		console.log('fetching');
+		Api.get('all')
+			.then((data) => {
+
+				for (var i in data.companies) {
+					var icon = data.companies[i].faicon ? convertCamel(data.companies[i].faicon.substr(3)) : 'code';
+					data.companies[i].faicon = (approvedIcons.indexOf(icon) > -1) ? 'fontawesome|'+icon : 'fontawesome|code';
+				}
+
+				this.setState({
+					isLoading: false,
+					companies: data.companies,
+					languages: data.languages,
+					locations: data.locations
+				});
+
+			});
 	},
 
 	browseAll: function() {
-		this.changeView({type: 'All'});
+		this.props.navigator.push({
+			title: 'All Companies',
+			component: Browse,
+			passProps: {
+				companies: this.state.companies
+			}
+		});
 	},
 	browseLocation: function() {
-		this.changeView({type: 'Location'});
+		this.props.navigator.push({
+			title: 'Browse Locations',
+			component: Locations,
+			passProps: {
+				companies: this.state.companies,
+				locations: this.state.locations
+			}
+		});
 
 	},
 	browseLanguage: function() {
-		this.changeView({type: 'Language'});
-	},
-
-	changeView: function(obj) {
-
 		this.props.navigator.push({
-			title: 'Browse ' + obj.type,
-			component: Browse,
-			passProps: {browseBy: obj.type}
+			title: 'Browse Languages',
+			component: Languages,
+			passProps: {
+				languages: this.state.languages,
+				companies: this.state.companies
+			}
 		});
 	},
-
 	render: function() {
+
+		if (this.state.isLoading) {
+			return (
+				<View style={styles.container}>
+					<Image source={{uri: 'http://webdevphoenix.com/images/bg.jpg'}} style={styles.image}>
+						<View style={styles.headerDropShadow}>
+							<View style={styles.header}>
+								<Text style={styles.headerText}>Discover companies in Phoenix that hire web developers.</Text>
+						<ActivityIndicatorIOS
+					        animating={this.state.isLoading}
+					        style={styles.centering}
+					        size="large"/>
+							</View>
+						<View style={styles.caretDropShadow}></View>
+						<View style={styles.caret}></View>
+						</View>
+					</Image>
+				</View>
+			)
+		}
 
 		return (
 			<View style={styles.container}>
-				
-
 				<Image source={{uri: 'http://webdevphoenix.com/images/bg.jpg'}} style={styles.image}>
 					<View style={styles.headerDropShadow}>
 						<View style={styles.header}>
@@ -162,14 +219,6 @@ var Main = React.createClass({
 				    underlayColor="#B56822">
 				      <Text style={styles.buttonText}>Browse By Location</Text>
 				</TouchableHighlight>
-			</View>
-		);
-	},
-
-	renderLoadingView: function() {
-		return (
-			<View style={styles.mainContainer}>
-				<Text> Loading Companies... </Text>
 			</View>
 		);
 	}

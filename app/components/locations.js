@@ -2,7 +2,7 @@
 
 var React = require('react-native');
 var Api = require('../utilities/api');
-var Company = require('./company');
+var Browse = require('./browse');
 var Icon = require('FAKIconImage');
 var approvedIcons = require('../assets/approved-icons.json');
 
@@ -95,10 +95,10 @@ var styles = StyleSheet.create({
 var Browse = React.createClass({
 
 	getInitialState: function() {
-
  		var ds = new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
 		return {
-			companies: ds.cloneWithRows(this.props.companies)
+			languages: ds.cloneWithRows(this.props.languages),
+			companies: this.props.companies
 		}
 	},
 
@@ -110,41 +110,28 @@ var Browse = React.createClass({
 		this.props.navigator.pop();
 	},
 
-	viewCompany: function(company) {
+	browseCompanies: function(language) {
 	
 		return function() {
 			this.props.navigator.push({
-				title: company.name,
-				component: Company,
+				title: language.title,
+				component: Browse,
 				passProps: {
-					company: company
+					data: companies
 				}
 			});
 		}.bind(this)
 	},
-
-	overView: function(overview) {
-		overview = overview || 'Learn more...';
-		return overview.length > 55 ? overview.substr(0, 55) + '...' : overview;
-	},
 					  	
-	renderRow: function(company) {
-
+	renderRow: function(language) {
 
 		return (		
 				<TouchableHighlight
-				    onPress={this.viewCompany(company)}
+				    onPress={this.browseCompanies(language)}
 				    underlayColor="#eee">
 						<View style={styles.row}>
-							<Icon
-							  name={company.faicon}
-							  size={40}
-							  color='#ddd'
-							  style={styles.fontIcon}
-						  	/>
 					  		<View style={styles.rowBody}>
-						  		<Text style={styles.title}>{company.name}</Text>
-						  		<Text style={styles.text}>{this.overView(company.overview)}</Text>
+						  		<Text style={styles.title}>{language.title}</Text>
 					  		</View>
 				  		</View>
 				</TouchableHighlight>
@@ -155,7 +142,7 @@ var Browse = React.createClass({
 
 		return (
 				<ListView
-				  dataSource={this.state.companies}
+				  dataSource={this.state.languages}
 				  renderRow={ this.renderRow}
 			  	/>
 		)

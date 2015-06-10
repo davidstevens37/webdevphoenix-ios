@@ -10,8 +10,8 @@ var Api = {
 
 	get: function(endpoint, scope) {
 		return fetch(this.buildUrl(endpoint))
-			.then((response) => response.json())
-			.then((responseData) => responseData);
+					.then((response) => response.json())
+			// .then((responseData) => responseData);
 			
 	},
 
